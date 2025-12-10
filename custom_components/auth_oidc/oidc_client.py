@@ -11,6 +11,9 @@ from functools import partial
 import aiohttp
 from jose import jwt, jwk
 from homeassistant.core import HomeAssistant
+## Added for debugging token response ##
+from pathlib import Path
+import aiofiles
 
 from .types import UserDetails
 from .config import (
@@ -209,7 +212,29 @@ class OIDCClient:
 
             async with session.post(token_endpoint, data=query_params) as response:
                 await self.http_raise_for_status(response)
-                return await response.json()
+                #return await response.json()
+                ###\___Added for debugging token response ###/
+                # Read the response body as text first
+                response_text = await response.text()
+                
+                try:
+                    # Attempt to parse as JSON
+                    return response.loads(response_text)
+                except response.JSONDecodeError:
+                    # If not JSON, write the exact response to a file
+                    # Save to response output working directory
+                    file_path = Path.cwd() / "token_response.txt"
+                    try:
+                        # Assuming async file writing via 'async with aiofiles.open' and 'await f.write'
+                        async with aiofiles.open(file_path, mode="w") as f:
+                            await f.write(response_text)
+                        _LOGGER.warning(f"Response was not JSON. Wrote exact response to {file_path}")
+                    except IOError as file_err:
+                        _LOGGER.error(f"Failed to write non-JSON response to file {file_path}: {file_err}")
+                    
+                    # Re-raise the original OIDCTokenResponseInvalid exception as the function expects a JSON return or an exception
+                    raise OIDCTokenResponseInvalid("Response was not JSON and written to file") from None
+                
         except HTTPClientError as e:
             if e.status == 400:
                 _LOGGER.warning(

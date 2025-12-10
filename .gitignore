@@ -11,6 +11,9 @@ __pycache__/
 # C extensions
 *.so
 
+# Temp Exclusion
+tests/test_hass_auth_provider_cse.py
+
 # Distribution / packaging
 .Python
 build/
