@@ -14,7 +14,7 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <a href="https://github.com/christiaangoossens/hass-oidc-auth/">
+  <a href="https://github.com/btbutts/hass-oidc-auth/">
     <img src="logo.png" alt="Logo" width="80" height="80">
   </a>
 
@@ -56,7 +56,7 @@ If you would like to read the background/open letter that lead to this component
 
 1. Add this repository to [HACS](https://hacs.xyz/) (or search for "OpenID Connect" in HACS).
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=christiaangoossens&repository=hass-oidc-auth&category=Integration)
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=btbutts&repository=hass-oidc-auth&category=Integration)
 
 2. Add the YAML configuration that matches your OIDC provider to `configuration.yaml`. See the [Configuration Guide](./docs/configuration.md) for more details or pick your OIDC provider below:
 
