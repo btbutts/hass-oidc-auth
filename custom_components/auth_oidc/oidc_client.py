@@ -13,10 +13,11 @@ from jose import jwt, jwk
 from homeassistant.core import HomeAssistant
 ## Added for debugging token response ##
 from pathlib import Path
-import aiofiles
+import json
 
-from .types import UserDetails
-from .config import (
+
+from auth_oidc.types import UserDetails
+from auth_oidc.config import (
     FEATURES_DISABLE_PKCE,
     CLAIMS_DISPLAY_NAME,
     CLAIMS_USERNAME,
@@ -25,10 +26,23 @@ from .config import (
     ROLE_USERS,
     NETWORK_TLS_VERIFY,
     NETWORK_TLS_CA_PATH,
+    VERBOSE_DEBUG_MODE,
 )
 
 _LOGGER = logging.getLogger(__name__)
 
+# Declare verbose authenticaition request and response log path
+# When debugging, you can check the contents of this directory
+# to see the exact requests and responses made during the OIDC flow.
+# Do NOT leave this enabled in production!
+OIDC_CAPTURE_DIR = Path.cwd() / "custom_components/auth_oidc/CapturedAuthChain"
+if VERBOSE_DEBUG_MODE:
+    _LOGGER.warning(
+        "VERBOSE_DEBUG_MODE is enabled! Detailed request and response "
+        + "logging is active. Do NOT leave this enabled in production!"
+    )
+    OIDC_CAPTURE_DIR.mkdir(parents=True, exist_ok=True)
+    
 
 class OIDCClientException(Exception):
     "Raised when the OIDC Client encounters an error"
@@ -180,10 +194,37 @@ class OIDCClient:
         """Fetches discovery document from the given URL."""
         try:
             session = await self._get_http_session()
+            
+            if VERBOSE_DEBUG_MODE:
+                # Expanded logging for request
+                _LOGGER.debug(f"Attempting to fetch discovery document from: {self.discovery_url}")
+                discovery_txt = OIDC_CAPTURE_DIR / "discovery.txt"
+                with open(discovery_txt, 'w', encoding='utf-8') as f:
+                    f.write(
+                        "----------BEGIN DISCOVERY DOCUMENT REQUEST----------\n"
+                        f"Discovery Endpoint URL: {self.discovery_url}\n"
+                        f"Request Headers: {session.headers}\n\n"
+                    )
+                _LOGGER.debug("Check Discovery doc request capture in: %s for more details...", discovery_txt)
 
             async with session.get(self.discovery_url) as response:
                 await self.http_raise_for_status(response)
-                return await response.json()
+                
+                response_text = await response.text()  # Read response for capturing
+                
+                if VERBOSE_DEBUG_MODE:
+                    # Expanded logging for Discovery response
+                    _LOGGER.debug(f"Discovery response received: Status {response.status}")
+                    with open(discovery_txt, 'a', encoding='utf-8') as f:
+                        f.write(
+                            "----------BEGIN DISCOVERY DOCUMENT RESPONSE----------\n"
+                            f"Fetch Discovery Doc Response Status: {response.status}\n"
+                            f"Response Body: {response_text}"
+                        )
+                    _LOGGER.debug("Check Discover Doc response capture in: %s for more details...", discovery_txt)
+                
+                return json.loads(response_text)
+                #return await response.json()
         except HTTPClientError as e:
             if e.status == 404:
                 _LOGGER.warning(
@@ -197,10 +238,37 @@ class OIDCClient:
         """Fetches JWKS from the given URL."""
         try:
             session = await self._get_http_session()
+            
+            if VERBOSE_DEBUG_MODE:
+                # Expanded logging for request
+                _LOGGER.debug(f"Retrieving JKWS keys from endpoint: {jwks_uri}")
+                jkws_txt = OIDC_CAPTURE_DIR / "jwks_request.txt"
+                with open(jkws_txt, 'w', encoding='utf-8') as f:
+                    f.write(
+                        "----------BEGIN JKWS REQUEST----------\n"
+                        f"JKWS Endpoint URL: {jwks_uri}\n"
+                        f"Request Headers: {session.headers}\n\n"
+                    )
+                _LOGGER.debug("Check JKWS request capture in: %s for more details...", jkws_txt)
 
             async with session.get(jwks_uri) as response:
                 await self.http_raise_for_status(response)
-                return await response.json()
+                
+                response_text = await response.text()
+                
+                if VERBOSE_DEBUG_MODE:
+                    # Expanded logging for response
+                    _LOGGER.debug(f"JWKS response received: Status {response.status}")
+                    with open(jkws_txt, 'a', encoding='utf-8') as f:
+                        f.write(
+                            "----------BEGIN JKWS RESPONSE----------\n"
+                            f"Fetch JKWS Keys Status: {response.status}\n"
+                            f"Response Body: {response_text}"
+                        )
+                    _LOGGER.debug("Check JKWS response capture in: %s for more details...", jkws_txt)
+                
+                return json.loads(response_text)
+                #return await response.json()
         except HTTPClientError as e:
             _LOGGER.warning("Error fetching JWKS: %s", e)
             raise OIDCJWKSInvalid from e
@@ -209,32 +277,54 @@ class OIDCClient:
         """Performs the token POST call"""
         try:
             session = await self._get_http_session()
+            
+            if VERBOSE_DEBUG_MODE:
+                # Expanded logging for request
+                _LOGGER.debug(f"Attempting Token request via Endpoint URL: {token_endpoint}")
+                token_req_txt = OIDC_CAPTURE_DIR / "token_req.txt"
+                with open(token_req_txt, 'w', encoding='utf-8') as f:
+                    f.write(
+                        "----------BEGIN TOKEN REQUEST----------\n"
+                        f"Token Endpoint URL: {token_endpoint}\n"
+                        f"Query Parameters: {query_params}\n\n"
+                    )
+                _LOGGER.debug("Check Token request capture in: %s for more details...", token_req_txt)
 
             async with session.post(token_endpoint, data=query_params) as response:
                 await self.http_raise_for_status(response)
-                #return await response.json()
-                ###\___Added for debugging token response ###/
-                # Read the response body as text first
+                
+                # Read the response as text
                 response_text = await response.text()
-                
+            
+                if VERBOSE_DEBUG_MODE:
+                    # Expanded logging for response
+                    _LOGGER.debug(f"Token response received: Status {response.status}")
+                    with open(token_req_txt, 'a', encoding='utf-8') as f:
+                        f.write(
+                            "----------BEGIN TOKEN RESPONSE----------\n"
+                            f"Fetch Token Status: {response.status}\n"
+                            f"Response Body: {response_text}"
+                        )
+                    _LOGGER.debug("Check Token response capture in: %s for more details...", token_req_txt)
+
                 try:
-                    # Attempt to parse as JSON
-                    return response.loads(response_text)
-                except response.JSONDecodeError:
-                    # If not JSON, write the exact response to a file
-                    # Save to response output working directory
-                    file_path = Path.cwd() / "token_response.txt"
-                    try:
-                        # Assuming async file writing via 'async with aiofiles.open' and 'await f.write'
-                        async with aiofiles.open(file_path, mode="w") as f:
-                            await f.write(response_text)
-                        _LOGGER.warning(f"Response was not JSON. Wrote exact response to {file_path}")
-                    except IOError as file_err:
-                        _LOGGER.error(f"Failed to write non-JSON response to file {file_path}: {file_err}")
-                    
-                    # Re-raise the original OIDCTokenResponseInvalid exception as the function expects a JSON return or an exception
-                    raise OIDCTokenResponseInvalid("Response was not JSON and written to file") from None
+                    # Attempt to parse the response as JSON
+                    parsed_json = json.loads(response_text)
+                    # If parsing succeeds, it's JSON, so do not write to file, log and return it
+                    _LOGGER.debug(f"Success! Token received from Endpoint: {token_endpoint}")
+                    return parsed_json
+                except json.JSONDecodeError:
+                    # If it's not JSON, always write the response to log file, unless
+                    # VERBOSE_DEBUG_MODE is True, then we already logged it above
+                    if not VERBOSE_DEBUG_MODE:
+                        file_path = OIDC_CAPTURE_DIR / "unhandled_parsed_token.txt"
+                        file_path.parent.mkdir(parents=True, exist_ok=True)
+                        with open(file_path, 'w', encoding='utf-8') as f:
+                            f.write(response_text)
+                    _LOGGER.error("Unhandled Exception: Token Response is not json!\n", exc_info=True)
+                    raise  # Re-raise the exception to propagate the error
                 
+                #return await response.json()
         except HTTPClientError as e:
             if e.status == 400:
                 _LOGGER.warning(
@@ -254,10 +344,37 @@ class OIDCClient:
         try:
             session = await self._get_http_session()
             headers = {"Authorization": "Bearer " + access_token}
+            
+            if VERBOSE_DEBUG_MODE:
+                # Expanded logging for request
+                _LOGGER.debug(f"Sending request to: {userinfo_uri} to collect Userinfo")
+                userinfo_txt = OIDC_CAPTURE_DIR / "userinfo.txt"
+                with open(userinfo_txt, 'w', encoding='utf-8') as f:
+                    f.write(
+                        "----------BEGIN USERINFO REQUEST----------\n"
+                        f"Userinfo URL: {userinfo_uri}\n"
+                        f"Request Headers: {headers}\n\n"
+                    )
+                _LOGGER.debug("Check Userinfo request capture in: %s for more details...", userinfo_txt)
 
             async with session.get(userinfo_uri, headers=headers) as response:
                 await self.http_raise_for_status(response)
-                return await response.json()
+                
+                response_text = await response.text()
+                
+                if VERBOSE_DEBUG_MODE:
+                    # Expanded logging for response
+                    _LOGGER.debug(f"Userinfo response received: Status {response.status}")
+                    with open(userinfo_txt, 'a', encoding='utf-8') as f:
+                        f.write(
+                            "----------BEGIN USERINFO RESPONSE----------\n"
+                            f"Userinfo Response Status: {response.status}\n"
+                            f"Response Body: {response_text}"
+                        )
+                    _LOGGER.debug("Check Userinfo response capture in: %s for more details...", userinfo_txt)
+                
+                return json.loads(response_text)
+                #return await response.json()
         except HTTPClientError as e:
             _LOGGER.warning("Error fetching userinfo: %s", e)
             raise OIDCUserinfoInvalid from e

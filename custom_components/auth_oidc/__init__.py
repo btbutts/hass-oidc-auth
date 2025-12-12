@@ -7,7 +7,7 @@ from homeassistant.core import HomeAssistant
 
 # Import and re-export config schema explictly
 # pylint: disable=useless-import-alias
-from .config import (
+from auth_oidc.config import (
     CONFIG_SCHEMA as CONFIG_SCHEMA,
     DOMAIN,
     DEFAULT_TITLE,
@@ -28,13 +28,13 @@ from .config import (
 
 # pylint: enable=useless-import-alias
 
-from .endpoints.welcome import OIDCWelcomeView
-from .endpoints.redirect import OIDCRedirectView
-from .endpoints.finish import OIDCFinishView
-from .endpoints.callback import OIDCCallbackView
+from auth_oidc.endpoints.welcome import OIDCWelcomeView
+from auth_oidc.endpoints.redirect import OIDCRedirectView
+from auth_oidc.endpoints.finish import OIDCFinishView
+from auth_oidc.endpoints.callback import OIDCCallbackView
 
-from .oidc_client import OIDCClient
-from .provider import OpenIDAuthProvider
+from auth_oidc.oidc_client import OIDCClient
+from auth_oidc.provider import OpenIDAuthProvider
 
 _LOGGER = logging.getLogger(__name__)
 

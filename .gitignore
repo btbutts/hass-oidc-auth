@@ -13,6 +13,7 @@ __pycache__/
 
 # Temp Exclusion
 tests/test_hass_auth_provider_cse.py
+result.json
 
 # Distribution / packaging
 .Python

@@ -29,6 +29,8 @@ NETWORK_TLS_CA_PATH = "tls_ca_path"
 
 DEFAULT_TITLE = "OpenID Connect (SSO)"
 
+VERBOSE_DEBUG_MODE = "enable_debug_mode"
+
 DOMAIN = "auth_oidc"
 CONFIG_SCHEMA = vol.Schema(
     {
@@ -51,6 +53,11 @@ CONFIG_SCHEMA = vol.Schema(
                 # Additional scopes to request from the OIDC provider
                 # Optional, this field is unnecessary if you only use the openid and profile scopes.
                 vol.Optional(ADDITIONAL_SCOPES, default=[]): vol.Coerce(list[str]),
+                # Added for debugging purposes
+                # If enabled, lgging will include more detailed information regarding
+                # the full OIDC auth chain (including tokens) and is captured within:
+                # /root/homeassistant/custom_components/auth_oidc/requests_responses/
+                vol.Optional(VERBOSE_DEBUG_MODE, default=False): vol.Coerce(bool),
                 # Which features should be enabled/disabled?
                 # Optional, defaults to sane/secure defaults
                 vol.Optional(FEATURES): vol.Schema(
