@@ -26,22 +26,20 @@ from .config import (
     ROLE_USERS,
     NETWORK_TLS_VERIFY,
     NETWORK_TLS_CA_PATH,
-    VERBOSE_DEBUG_MODE,
 )
 
 _LOGGER = logging.getLogger(__name__)
 
-# Declare verbose authenticaition request and response log path
+# Define verbose authenticaition request and response log path
 # When debugging, you can check the contents of this directory
 # to see the exact requests and responses made during the OIDC flow.
-# Do NOT leave this enabled in production!
 OIDC_CAPTURE_DIR = Path.cwd() / "custom_components/auth_oidc/CapturedAuthChain"
-if VERBOSE_DEBUG_MODE:
-    _LOGGER.warning(
-        "VERBOSE_DEBUG_MODE is enabled! Detailed request and response "
-        + "logging is active. Do NOT leave this enabled in production!"
-    )
-    OIDC_CAPTURE_DIR.mkdir(parents=True, exist_ok=True)
+#if VERBOSE_DEBUG_MODE:
+#    _LOGGER.warning(
+#        "VERBOSE_DEBUG_MODE is enabled so detailed token request and response "
+#        + "logging is active. Do NOT leave this enabled in production!"
+#    )
+#    OIDC_CAPTURE_DIR.mkdir(parents=True, exist_ok=True)
     
 
 class OIDCClientException(Exception):
@@ -112,6 +110,15 @@ class OIDCClient:
         # Optional parameters
         self.client_secret = kwargs.get("client_secret")
 
+        # Prepare Verbose Debug Mode
+        self.verbose_debug_mode = kwargs.get("enable_verbose_debug_mode", False)
+        if self.verbose_debug_mode:
+            _LOGGER.warning(
+                "VERBOSE_DEBUG_MODE is enabled so detailed token request and response "
+                + "logging is active. Do NOT leave this enabled in production!"
+            )
+            OIDC_CAPTURE_DIR.mkdir(parents=True, exist_ok=True)
+        
         # Default id_token_signing_alg to RS256 if not specified
         self.id_token_signing_alg = kwargs.get("id_token_signing_alg")
         if self.id_token_signing_alg is None:
@@ -195,7 +202,7 @@ class OIDCClient:
         try:
             session = await self._get_http_session()
             
-            if VERBOSE_DEBUG_MODE:
+            if self.verbose_debug_mode:
                 # Expanded logging for request
                 _LOGGER.debug(f"Attempting to fetch discovery document from: {self.discovery_url}")
                 discovery_txt = OIDC_CAPTURE_DIR / "discovery.txt"
@@ -212,7 +219,7 @@ class OIDCClient:
                 
                 response_text = await response.text()  # Read response for capturing
                 
-                if VERBOSE_DEBUG_MODE:
+                if self.verbose_debug_mode:
                     # Expanded logging for Discovery response
                     _LOGGER.debug(f"Discovery response received: Status {response.status}")
                     with open(discovery_txt, 'a', encoding='utf-8') as f:
@@ -239,7 +246,7 @@ class OIDCClient:
         try:
             session = await self._get_http_session()
             
-            if VERBOSE_DEBUG_MODE:
+            if self.verbose_debug_mode:
                 # Expanded logging for request
                 _LOGGER.debug(f"Retrieving JKWS keys from endpoint: {jwks_uri}")
                 jkws_txt = OIDC_CAPTURE_DIR / "jwks_request.txt"
@@ -256,7 +263,7 @@ class OIDCClient:
                 
                 response_text = await response.text()
                 
-                if VERBOSE_DEBUG_MODE:
+                if self.verbose_debug_mode:
                     # Expanded logging for response
                     _LOGGER.debug(f"JWKS response received: Status {response.status}")
                     with open(jkws_txt, 'a', encoding='utf-8') as f:
@@ -278,7 +285,7 @@ class OIDCClient:
         try:
             session = await self._get_http_session()
             
-            if VERBOSE_DEBUG_MODE:
+            if self.verbose_debug_mode:
                 # Expanded logging for request
                 _LOGGER.debug(f"Attempting Token request via Endpoint URL: {token_endpoint}")
                 token_req_txt = OIDC_CAPTURE_DIR / "token_req.txt"
@@ -296,7 +303,7 @@ class OIDCClient:
                 # Read the response as text
                 response_text = await response.text()
             
-                if VERBOSE_DEBUG_MODE:
+                if self.verbose_debug_mode:
                     # Expanded logging for response
                     _LOGGER.debug(f"Token response received: Status {response.status}")
                     with open(token_req_txt, 'a', encoding='utf-8') as f:
@@ -316,7 +323,7 @@ class OIDCClient:
                 except json.JSONDecodeError:
                     # If it's not JSON, always write the response to log file, unless
                     # VERBOSE_DEBUG_MODE is True, then we already logged it above
-                    if not VERBOSE_DEBUG_MODE:
+                    if not self.verbose_debug_mode:
                         file_path = OIDC_CAPTURE_DIR / "unhandled_parsed_token.txt"
                         file_path.parent.mkdir(parents=True, exist_ok=True)
                         with open(file_path, 'w', encoding='utf-8') as f:
@@ -345,7 +352,7 @@ class OIDCClient:
             session = await self._get_http_session()
             headers = {"Authorization": "Bearer " + access_token}
             
-            if VERBOSE_DEBUG_MODE:
+            if self.verbose_debug_mode:
                 # Expanded logging for request
                 _LOGGER.debug(f"Sending request to: {userinfo_uri} to collect Userinfo")
                 userinfo_txt = OIDC_CAPTURE_DIR / "userinfo.txt"
@@ -362,7 +369,7 @@ class OIDCClient:
                 
                 response_text = await response.text()
                 
-                if VERBOSE_DEBUG_MODE:
+                if self.verbose_debug_mode:
                     # Expanded logging for response
                     _LOGGER.debug(f"Userinfo response received: Status {response.status}")
                     with open(userinfo_txt, 'a', encoding='utf-8') as f:

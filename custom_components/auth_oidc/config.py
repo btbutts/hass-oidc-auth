@@ -29,7 +29,7 @@ NETWORK_TLS_CA_PATH = "tls_ca_path"
 
 DEFAULT_TITLE = "OpenID Connect (SSO)"
 
-VERBOSE_DEBUG_MODE = "enable_debug_mode"
+VERBOSE_DEBUG_MODE = "enable_verbose_debug_mode"
 
 DOMAIN = "auth_oidc"
 CONFIG_SCHEMA = vol.Schema(
