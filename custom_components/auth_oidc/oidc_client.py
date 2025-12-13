@@ -33,7 +33,7 @@ _LOGGER = logging.getLogger(__name__)
 # Define verbose authenticaition request and response log path
 # When debugging, you can check the contents of this directory
 # to see the exact requests and responses made during the OIDC flow.
-OIDC_CAPTURE_DIR = Path.cwd() / "custom_components/auth_oidc/CapturedAuthChain"
+OIDC_CAPTURE_DIR = Path.cwd() / "custom_components/auth_oidc/verbose_dubug"
 #if VERBOSE_DEBUG_MODE:
 #    _LOGGER.warning(
 #        "VERBOSE_DEBUG_MODE is enabled so detailed token request and response "
@@ -205,7 +205,7 @@ class OIDCClient:
             if self.verbose_debug_mode:
                 # Expanded logging for request
                 _LOGGER.debug(f"Attempting to fetch discovery document from: {self.discovery_url}")
-                discovery_txt = OIDC_CAPTURE_DIR / "discovery.txt"
+                discovery_txt = OIDC_CAPTURE_DIR / "get_discovery.txt"
                 with open(discovery_txt, 'w', encoding='utf-8') as f:
                     f.write(
                         "----------BEGIN DISCOVERY DOCUMENT REQUEST----------\n"
@@ -249,7 +249,7 @@ class OIDCClient:
             if self.verbose_debug_mode:
                 # Expanded logging for request
                 _LOGGER.debug(f"Retrieving JKWS keys from endpoint: {jwks_uri}")
-                jkws_txt = OIDC_CAPTURE_DIR / "jwks_request.txt"
+                jkws_txt = OIDC_CAPTURE_DIR / "get_jwks.txt"
                 with open(jkws_txt, 'w', encoding='utf-8') as f:
                     f.write(
                         "----------BEGIN JKWS REQUEST----------\n"
@@ -288,7 +288,7 @@ class OIDCClient:
             if self.verbose_debug_mode:
                 # Expanded logging for request
                 _LOGGER.debug(f"Attempting Token request via Endpoint URL: {token_endpoint}")
-                token_req_txt = OIDC_CAPTURE_DIR / "token_req.txt"
+                token_req_txt = OIDC_CAPTURE_DIR / "get_token.txt"
                 with open(token_req_txt, 'w', encoding='utf-8') as f:
                     f.write(
                         "----------BEGIN TOKEN REQUEST----------\n"
@@ -355,7 +355,7 @@ class OIDCClient:
             if self.verbose_debug_mode:
                 # Expanded logging for request
                 _LOGGER.debug(f"Sending request to: {userinfo_uri} to collect Userinfo")
-                userinfo_txt = OIDC_CAPTURE_DIR / "userinfo.txt"
+                userinfo_txt = OIDC_CAPTURE_DIR / "get_userinfo.txt"
                 with open(userinfo_txt, 'w', encoding='utf-8') as f:
                     f.write(
                         "----------BEGIN USERINFO REQUEST----------\n"
