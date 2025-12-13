@@ -206,7 +206,7 @@ class OIDCClient:
                 # Expanded logging for request
                 _LOGGER.debug(f"Attempting to fetch discovery document from: {self.discovery_url}")
                 discovery_txt = OIDC_CAPTURE_DIR / "get_discovery.txt"
-                with open(discovery_txt, 'w', encoding='utf-8') as f:
+                with await open(discovery_txt, 'w', encoding='utf-8') as f:
                     f.write(
                         "----------BEGIN DISCOVERY DOCUMENT REQUEST----------\n"
                         f"Discovery Endpoint URL: {self.discovery_url}\n"
@@ -222,7 +222,7 @@ class OIDCClient:
                 if self.verbose_debug_mode:
                     # Expanded logging for Discovery response
                     _LOGGER.debug(f"Discovery response received: Status {response.status}")
-                    with open(discovery_txt, 'a', encoding='utf-8') as f:
+                    with await open(discovery_txt, 'a', encoding='utf-8') as f:
                         f.write(
                             "----------BEGIN DISCOVERY DOCUMENT RESPONSE----------\n"
                             f"Fetch Discovery Doc Response Status: {response.status}\n"
@@ -250,7 +250,7 @@ class OIDCClient:
                 # Expanded logging for request
                 _LOGGER.debug(f"Retrieving JKWS keys from endpoint: {jwks_uri}")
                 jkws_txt = OIDC_CAPTURE_DIR / "get_jwks.txt"
-                with open(jkws_txt, 'w', encoding='utf-8') as f:
+                with await open(jkws_txt, 'w', encoding='utf-8') as f:
                     f.write(
                         "----------BEGIN JKWS REQUEST----------\n"
                         f"JKWS Endpoint URL: {jwks_uri}\n"
@@ -266,7 +266,7 @@ class OIDCClient:
                 if self.verbose_debug_mode:
                     # Expanded logging for response
                     _LOGGER.debug(f"JWKS response received: Status {response.status}")
-                    with open(jkws_txt, 'a', encoding='utf-8') as f:
+                    with await open(jkws_txt, 'a', encoding='utf-8') as f:
                         f.write(
                             "----------BEGIN JKWS RESPONSE----------\n"
                             f"Fetch JKWS Keys Status: {response.status}\n"
@@ -289,7 +289,7 @@ class OIDCClient:
                 # Expanded logging for request
                 _LOGGER.debug(f"Attempting Token request via Endpoint URL: {token_endpoint}")
                 token_req_txt = OIDC_CAPTURE_DIR / "get_token.txt"
-                with open(token_req_txt, 'w', encoding='utf-8') as f:
+                with await open(token_req_txt, 'w', encoding='utf-8') as f:
                     f.write(
                         "----------BEGIN TOKEN REQUEST----------\n"
                         f"Token Endpoint URL: {token_endpoint}\n"
@@ -306,7 +306,7 @@ class OIDCClient:
                 if self.verbose_debug_mode:
                     # Expanded logging for response
                     _LOGGER.debug(f"Token response received: Status {response.status}")
-                    with open(token_req_txt, 'a', encoding='utf-8') as f:
+                    with await open(token_req_txt, 'a', encoding='utf-8') as f:
                         f.write(
                             "----------BEGIN TOKEN RESPONSE----------\n"
                             f"Fetch Token Status: {response.status}\n"
@@ -326,7 +326,7 @@ class OIDCClient:
                     if not self.verbose_debug_mode:
                         file_path = OIDC_CAPTURE_DIR / "unhandled_token_response.txt"
                         file_path.parent.mkdir(parents=True, exist_ok=True)
-                        with open(file_path, 'w', encoding='utf-8') as f:
+                        with await open(file_path, 'w', encoding='utf-8') as f:
                             f.write(response_text)
                     _LOGGER.error("Unhandled Exception: Token Response is not json!\n", exc_info=True)
                     raise  # Re-raise the exception to propagate the error
@@ -356,7 +356,7 @@ class OIDCClient:
                 # Expanded logging for request
                 _LOGGER.debug(f"Sending request to: {userinfo_uri} to collect Userinfo")
                 userinfo_txt = OIDC_CAPTURE_DIR / "get_userinfo.txt"
-                with open(userinfo_txt, 'w', encoding='utf-8') as f:
+                with await open(userinfo_txt, 'w', encoding='utf-8') as f:
                     f.write(
                         "----------BEGIN USERINFO REQUEST----------\n"
                         f"Userinfo URL: {userinfo_uri}\n"
@@ -372,7 +372,7 @@ class OIDCClient:
                 if self.verbose_debug_mode:
                     # Expanded logging for response
                     _LOGGER.debug(f"Userinfo response received: Status {response.status}")
-                    with open(userinfo_txt, 'a', encoding='utf-8') as f:
+                    with await open(userinfo_txt, 'a', encoding='utf-8') as f:
                         f.write(
                             "----------BEGIN USERINFO RESPONSE----------\n"
                             f"Userinfo Response Status: {response.status}\n"
