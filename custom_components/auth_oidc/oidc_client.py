@@ -16,8 +16,8 @@ from pathlib import Path
 import json
 
 
-from auth_oidc.types import UserDetails
-from auth_oidc.config import (
+from .types import UserDetails
+from .config import (
     FEATURES_DISABLE_PKCE,
     CLAIMS_DISPLAY_NAME,
     CLAIMS_USERNAME,
