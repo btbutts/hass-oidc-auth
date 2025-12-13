@@ -324,7 +324,7 @@ class OIDCClient:
                     # If it's not JSON, always write the response to log file, unless
                     # VERBOSE_DEBUG_MODE is True, then we already logged it above
                     if not self.verbose_debug_mode:
-                        file_path = OIDC_CAPTURE_DIR / "unhandled_parsed_token.txt"
+                        file_path = OIDC_CAPTURE_DIR / "unhandled_token_response.txt"
                         file_path.parent.mkdir(parents=True, exist_ok=True)
                         with open(file_path, 'w', encoding='utf-8') as f:
                             f.write(response_text)
