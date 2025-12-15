@@ -95,7 +95,7 @@ async def async_setup(hass: HomeAssistant, config):
     )
     
     # Record configured scopes to log if verbose debug mode is enabled
-    if oidc_client.enable_verbose_debug_mode:
+    if oidc_client.verbose_debug_mode:
         _LOGGER.debug(
             f"The following scopes will be included in auth request: {scope}"
         )
