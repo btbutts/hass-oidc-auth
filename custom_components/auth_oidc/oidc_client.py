@@ -120,7 +120,7 @@ class OIDCClient:
             )
             OIDC_CAPTURE_DIR.mkdir(parents=True, exist_ok=True)
             # Record configured scopes to log if verbose debug mode is enabled
-            _LOGGER.debug(
+            _LOGGER.info(
                 f"The following scopes will be included in auth request: {self.scope}"
             )
         
