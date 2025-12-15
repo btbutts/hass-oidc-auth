@@ -24,6 +24,7 @@ from .config import (
     NETWORK,
     FEATURES_INCLUDE_GROUPS_SCOPE,
     FEATURES_FORCE_HTTPS,
+    VERBOSE_DEBUG_MODE,
 )
 
 # pylint: enable=useless-import-alias
@@ -90,6 +91,7 @@ async def async_setup(hass: HomeAssistant, config):
         claims=my_config.get(CLAIMS, {}),
         roles=my_config.get(ROLES, {}),
         network=my_config.get(NETWORK, {}),
+        enable_verbose_debug_mode=my_config.get(VERBOSE_DEBUG_MODE),
     )
 
     # Register the views
