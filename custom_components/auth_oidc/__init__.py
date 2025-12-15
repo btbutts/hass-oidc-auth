@@ -60,7 +60,9 @@ async def async_setup(hass: HomeAssistant, config):
     # Set the correct scopes
     # Always use 'openid' & 'profile' as they are specified in the OIDC spec
     # All servers should support this
-    scope = "openid profile"
+    # Brian Butts: Adding email whihch is not useful for home assistant
+    # but often expected by OIDC providers to be included in token request
+    scope = "openid profile email"
 
     # Include groups if requested (default is to include 'groups'
     # as a scope for Authelia & Authentik)
@@ -91,6 +93,12 @@ async def async_setup(hass: HomeAssistant, config):
         network=my_config.get(NETWORK, {}),
         enable_verbose_debug_mode=my_config.get(VERBOSE_DEBUG_MODE),
     )
+    
+    # Record configured scopes to log if verbose debug mode is enabled
+    if oidc_client.enable_verbose_debug_mode:
+        _LOGGER.debug(
+            f"The following scopes will be included in auth request: {scope}"
+        )
 
     # Register the views
     name = config[DOMAIN].get(DISPLAY_NAME, DEFAULT_TITLE)

@@ -209,9 +209,8 @@ class OIDCClient:
                 discovery_txt = OIDC_CAPTURE_DIR / "get_discovery.txt"
                 async with aiofiles.open(discovery_txt, 'w', encoding='utf-8') as f:
                     await f.write(
-                        "----------BEGIN DISCOVERY DOCUMENT REQUEST----------\n"
-                        f"Discovery Endpoint URL: {self.discovery_url}\n"
-                        f"Request Headers: {session.headers}\n\n"
+                        "/*\n----------BEGIN DISCOVERY DOCUMENT REQUEST----------\n"
+                        f"Discovery Endpoint URL: {self.discovery_url}\n*/\n\n"
                     )
                 _LOGGER.debug("Check Discovery doc request capture in: %s for more details...", discovery_txt)
 
@@ -225,9 +224,9 @@ class OIDCClient:
                     _LOGGER.debug(f"Discovery response received: Status {response.status}")
                     async with aiofiles.open(discovery_txt, 'a', encoding='utf-8') as f:
                         await f.write(
-                            "----------BEGIN DISCOVERY DOCUMENT RESPONSE----------\n"
-                            f"Fetch Discovery Doc Response Status: {response.status}\n"
-                            f"Response Body: {response_text}"
+                            "/*\n----------BEGIN DISCOVERY DOCUMENT RESPONSE----------\n"
+                            f"Fetch Discovery Doc Response Status: {response.status}\n*/\n"
+                            f"//Response Body:\n{response_text}\n"
                         )
                     _LOGGER.debug("Check Discover Doc response capture in: %s for more details...", discovery_txt)
                 
@@ -249,15 +248,14 @@ class OIDCClient:
             
             if self.verbose_debug_mode:
                 # Expanded logging for request
-                _LOGGER.debug(f"Retrieving JKWS keys from endpoint: {jwks_uri}")
-                jkws_txt = OIDC_CAPTURE_DIR / "get_jwks.txt"
-                async with aiofiles.open(jkws_txt, 'w', encoding='utf-8') as f:
+                _LOGGER.debug(f"Retrieving JWKS keys from endpoint: {jwks_uri}")
+                jwks_txt = OIDC_CAPTURE_DIR / "get_jwks.txt"
+                async with aiofiles.open(jwks_txt, 'w', encoding='utf-8') as f:
                     await f.write(
-                        "----------BEGIN JKWS REQUEST----------\n"
-                        f"JKWS Endpoint URL: {jwks_uri}\n"
-                        f"Request Headers: {session.headers}\n\n"
+                        "/*\n----------BEGIN JWKS REQUEST----------\n"
+                        f"JWKS Endpoint URL: {jwks_uri}\n*/\n\n"
                     )
-                _LOGGER.debug("Check JKWS request capture in: %s for more details...", jkws_txt)
+                _LOGGER.debug("Check JWKS request capture in: %s for more details...", jwks_txt)
 
             async with session.get(jwks_uri) as response:
                 await self.http_raise_for_status(response)
@@ -267,13 +265,13 @@ class OIDCClient:
                 if self.verbose_debug_mode:
                     # Expanded logging for response
                     _LOGGER.debug(f"JWKS response received: Status {response.status}")
-                    async with aiofiles.open(jkws_txt, 'a', encoding='utf-8') as f:
+                    async with aiofiles.open(jwks_txt, 'a', encoding='utf-8') as f:
                         await f.write(
-                            "----------BEGIN JKWS RESPONSE----------\n"
-                            f"Fetch JKWS Keys Status: {response.status}\n"
-                            f"Response Body: {response_text}"
+                            "/*\n----------BEGIN JWKS RESPONSE----------\n"
+                            f"Fetch JWKS Keys Status: {response.status}\n*/\n"
+                            f"//Response Body:\n{response_text}\n"
                         )
-                    _LOGGER.debug("Check JKWS response capture in: %s for more details...", jkws_txt)
+                    _LOGGER.debug("Check JWKS response capture in: %s for more details...", jwks_txt)
                 
                 return json.loads(response_text)
                 #return await response.json()
@@ -292,9 +290,9 @@ class OIDCClient:
                 token_req_txt = OIDC_CAPTURE_DIR / "get_token.txt"
                 async with aiofiles.open(token_req_txt, 'w', encoding='utf-8') as f:
                     await f.write(
-                        "----------BEGIN TOKEN REQUEST----------\n"
-                        f"Token Endpoint URL: {token_endpoint}\n"
-                        f"Query Parameters: {query_params}\n\n"
+                        "/*\n----------BEGIN TOKEN REQUEST----------\n"
+                        f"Token Endpoint URL: {token_endpoint}\n*/\n"
+                        f"//Query Parameters:\n{query_params}\n\n"
                     )
                 _LOGGER.debug("Check Token request capture in: %s for more details...", token_req_txt)
 
@@ -309,9 +307,9 @@ class OIDCClient:
                     _LOGGER.debug(f"Token response received: Status {response.status}")
                     async with aiofiles.open(token_req_txt, 'a', encoding='utf-8') as f:
                         await f.write(
-                            "----------BEGIN TOKEN RESPONSE----------\n"
-                            f"Fetch Token Status: {response.status}\n"
-                            f"Response Body: {response_text}"
+                            "/*\n----------BEGIN TOKEN RESPONSE----------\n"
+                            f"Fetch Token Status: {response.status}\n*/\n"
+                            f"//Response Body:\n{response_text}\n"
                         )
                     _LOGGER.debug("Check Token response capture in: %s for more details...", token_req_txt)
 
@@ -359,9 +357,9 @@ class OIDCClient:
                 userinfo_txt = OIDC_CAPTURE_DIR / "get_userinfo.txt"
                 async with aiofiles.open(userinfo_txt, 'w', encoding='utf-8') as f:
                     await f.write(
-                        "----------BEGIN USERINFO REQUEST----------\n"
-                        f"Userinfo URL: {userinfo_uri}\n"
-                        f"Request Headers: {headers}\n\n"
+                        "/*\n----------BEGIN USERINFO REQUEST----------\n"
+                        f"Userinfo URL: {userinfo_uri}\n*/\n"
+                        f"//Request Headers:\n{headers}\n\n"
                     )
                 _LOGGER.debug("Check Userinfo request capture in: %s for more details...", userinfo_txt)
 
@@ -375,9 +373,9 @@ class OIDCClient:
                     _LOGGER.debug(f"Userinfo response received: Status {response.status}")
                     async with aiofiles.open(userinfo_txt, 'a', encoding='utf-8') as f:
                         await f.write(
-                            "----------BEGIN USERINFO RESPONSE----------\n"
-                            f"Userinfo Response Status: {response.status}\n"
-                            f"Response Body: {response_text}"
+                            "/*\n----------BEGIN USERINFO RESPONSE----------\n"
+                            f"Userinfo Response Status: {response.status}\n*/\n"
+                            f"//Response Body:\n{response_text}\n"
                         )
                     _LOGGER.debug("Check Userinfo response capture in: %s for more details...", userinfo_txt)
                 
