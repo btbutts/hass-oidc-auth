@@ -119,6 +119,10 @@ class OIDCClient:
                 + "logging is active. Do NOT leave this enabled in production!"
             )
             OIDC_CAPTURE_DIR.mkdir(parents=True, exist_ok=True)
+            # Record configured scopes to log if verbose debug mode is enabled
+            _LOGGER.debug(
+                f"The following scopes will be included in auth request: {self.scope}"
+            )
         
         # Default id_token_signing_alg to RS256 if not specified
         self.id_token_signing_alg = kwargs.get("id_token_signing_alg")
