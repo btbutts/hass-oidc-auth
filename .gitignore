@@ -115,4 +115,4 @@ config/
 
 .venv
 .DS_Store
-#dummy text to verify gpg signature checks during commits
+#dummy text to verify gpg signature checks during commits 
