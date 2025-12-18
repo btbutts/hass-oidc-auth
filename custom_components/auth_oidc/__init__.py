@@ -86,7 +86,7 @@ async def async_setup(hass: HomeAssistant, config):
         client_id=my_config.get(CLIENT_ID),
         scope=scope,
         client_secret=my_config.get(CLIENT_SECRET),
-        id_token_signing_alg=my_config.get(ID_TOKEN_SIGNING_ALGORITHM),
+        id_token_signing_alg=my_config.get(ID_TOKEN_SIGNING_ALGORITHM), # If None, we use OP/IdP supported algorithms
         features=my_config.get(FEATURES, {}),
         claims=my_config.get(CLAIMS, {}),
         roles=my_config.get(ROLES, {}),

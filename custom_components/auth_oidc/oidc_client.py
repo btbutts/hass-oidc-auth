@@ -15,6 +15,7 @@ from homeassistant.core import HomeAssistant
 from pathlib import Path
 import json
 import aiofiles
+from .helpers import compute_allowed_signing_algs
 
 
 from .types import UserDetails
@@ -124,10 +125,13 @@ class OIDCClient:
                 f"The following scopes will be included in auth request: {self.scope}"
             )
         
-        # Default id_token_signing_alg to RS256 if not specified
-        self.id_token_signing_alg = kwargs.get("id_token_signing_alg")
-        if self.id_token_signing_alg is None:
-            self.id_token_signing_alg = "RS256"
+        # Configured ID token signing alg (None = use OP discovery supported algorithms)
+        self.configured_signing_alg = kwargs.get("id_token_signing_alg")
+        if self.verbose_debug_mode:
+            _LOGGER.debug(
+                "Configured ID token signing algorithm: %s",
+                self.configured_signing_alg or "none (will use OP discovery)"
+            )
 
         features = kwargs.get("features")
         claims = kwargs.get("claims")
@@ -395,6 +399,14 @@ class OIDCClient:
         """Parses the ID token into a dict containing token contents."""
         if self.discovery_document is None:
             self.discovery_document = await self._fetch_discovery_document()
+        
+        # Compute allowed signing algs from config + discovery
+        allowed_algs = compute_allowed_signing_algs(
+            self.discovery_document,
+            self.configured_signing_alg,
+            self.verbose_debug_mode,
+            _LOGGER,
+        )
 
         jwks_uri = self.discovery_document["jwks_uri"]
         jwks_data = await self._get_jwks(jwks_uri)
@@ -408,14 +420,20 @@ class OIDCClient:
 
             # Obtain the signing algorithm from the header of the id_token
             alg = unverified_header.get("alg")
-            if alg != self.id_token_signing_alg:
-                # Verify that it matches our requested algorithm
+            if alg is None:
+                _LOGGER.warning("ID token header missing 'alg' parameter.")
+                return None
+            
+            if alg not in allowed_algs:
                 _LOGGER.warning(
-                    "ID Token received signed with the wrong algorithm: %s, expected %s",
-                    alg,
-                    self.id_token_signing_alg,
+                    "ID token signed with unsupported algorithm '%s' (allowed: %s)",
+                    alg, allowed_algs
                 )
                 raise OIDCIdTokenSigningAlgorithmInvalid()
+            
+            # Optionally log the signing algorithm
+            if self.verbose_debug_mode:
+                _LOGGER.debug("ID token signed with algorithm '%s'", alg)
 
             # OpenID Connect Core 1.0 Section 3.1.3.7.8
             # If the JWT alg Header Parameter uses a MAC based algorithm
@@ -473,7 +491,7 @@ class OIDCClient:
                 # The Client MUST validate the signature of all other ID Tokens
                 # according to JWS [JWS] using the algorithm specified in the JWT
                 # alg Header Parameter.
-                algorithms=[self.id_token_signing_alg],
+                algorithms=[alg],
                 # OpenID Connect Core 1.0 Section 3.1.3.7.3
                 # The Client MUST validate that the aud (audience) Claim contains
                 # its client_id value registered at the Issuer identified by the

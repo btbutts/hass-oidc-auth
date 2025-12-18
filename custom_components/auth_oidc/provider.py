@@ -227,9 +227,19 @@ class OpenIDAuthProvider(AuthProvider):
                 return credential
 
         # If no credential was found, create a new one
-        # Username cannot be supplied here as it won't be shown by Home Assistant regardless
-        # Source: homeassistant/components/config/auth.py, line 162
-        credential = self.async_create_credentials({"sub": sub})
+        # Now include the username from meta in the credential data
+        # sub is still used for linking - no logic change
+        # Usernames can be added to homeassistant/.storage/auth and must be
+        # ordered first, else changed usernames won't be updated
+        # Home Assistant currently ignores this, since they don't support custom AuthProviders currently.
+        # Source: https://developers.home-assistant.io/docs/auth_auth_provider/#:~:text=built-in%20auth%20providers
+        # We can still support it should HA add support later
+        credential_data = {
+            "username": meta.get("username"),  # Add username from user meta
+            "sub": sub,  # Existing sub parameter
+        }
+
+        credential = self.async_create_credentials(credential_data)
 
         # If we have user linking enabled, try to link the user here
         if self.user_linking:

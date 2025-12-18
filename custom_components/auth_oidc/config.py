@@ -45,7 +45,9 @@ CONFIG_SCHEMA = vol.Schema(
                 # Which name should be shown on the login screens?
                 vol.Optional(DISPLAY_NAME): vol.Coerce(str),
                 # Should we enforce a specific signing algorithm on the id tokens?
+                # Leave unset (None) to allow all from OP discovery 'id_token_signing_alg_values_supported'
                 # Defaults to RS256/RSA-pubkey
+                # Warns if configured alg not supported by OP.
                 vol.Optional(ID_TOKEN_SIGNING_ALGORITHM): vol.Coerce(str),
                 # String value to allow changing the groups scope
                 # Defaults to 'groups' which is used by Authelia and Authentik
